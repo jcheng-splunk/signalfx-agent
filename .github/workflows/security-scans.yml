@@ -1,0 +1,47 @@
+name: Security Scans
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+jobs:
+  trivy-fs-scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - name: Run trivy filesystem scan
+        uses: aquasecurity/trivy-action@0.2.0
+        with:
+          scan-type: 'fs'
+          scan-ref: '.'
+          skip-dirs: 'scripts,tests,test-services'
+          format: 'table'
+          exit-code: '1'
+          severity: 'CRITICAL,HIGH'
+          ignore-unfixed: true
+
+  trivy-image-scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - name: Build agent image
+        run: make image
+        env:
+          DOCKER_BUILDKIT: '1'
+          AGENT_VERSION: latest
+          PULL_CACHE: yes
+      - name: Run trivy image scan
+        uses: aquasecurity/trivy-action@0.2.0
+        with:
+          scan-type: 'image'
+          image-ref: 'quay.io/signalfx/signalfx-agent-dev:latest'
+          format: 'table'
+          exit-code: '1'
+          severity: 'CRITICAL,HIGH'
+          ignore-unfixed: true

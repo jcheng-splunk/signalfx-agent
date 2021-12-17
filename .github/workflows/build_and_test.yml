@@ -25,6 +25,7 @@ jobs:
 
       - name: Build image and bundle
         env:
+          DOCKER_BUILDKIT: '1'
           PULL_CACHE: yes
           AGENT_VERSION: latest
         run: |
